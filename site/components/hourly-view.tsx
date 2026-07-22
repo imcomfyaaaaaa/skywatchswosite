@@ -43,10 +43,10 @@ export function HourlyView({
   })
 
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-      <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+    <section className="border-b border-border py-6">
+      <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
         <Clock className="size-4" />
-        <h2>Detailed Hourly</h2>
+        <h2 className="font-semibold">Detailed Hourly</h2>
       </div>
 
       <div className="grid grid-cols-[64px_60px_1fr_64px_64px] gap-2 border-b border-border pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:grid-cols-[80px_72px_1fr_80px_80px]">

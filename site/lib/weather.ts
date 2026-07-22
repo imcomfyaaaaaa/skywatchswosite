@@ -66,6 +66,12 @@ export interface WeatherResponse {
   daily: DailyData
 }
 
+export interface AirQualityResponse {
+  current: {
+    us_aqi: number
+  }
+}
+
 export interface WeatherAlert {
   title: string
   severity: string
@@ -140,6 +146,15 @@ export function getSkyClass(code: number): string {
   return 'sky-clear'
 }
 
+export function getAqiLabel(aqi: number): string {
+  if (aqi <= 50) return 'Good'
+  if (aqi <= 100) return 'Moderate'
+  if (aqi <= 150) return 'Sensitive'
+  if (aqi <= 200) return 'Unhealthy'
+  if (aqi <= 300) return 'V. Unhealthy'
+  return 'Hazardous'
+}
+
 // ── Formatting helpers ──────────────────────────────────────────────
 export const tempSymbol = (u: TempUnit) => (u === 'fahrenheit' ? '°F' : '°C')
 export const windLabel = (u: WindUnit) => (u === 'mph' ? 'mph' : 'km/h')
@@ -165,7 +180,7 @@ export function formatDay(iso: string) {
   })
 }
 
-// ── Data fetching ───────────────────────────────────────────────────
+// ── API Fetchers ───────────────────────────────────────────────────
 export async function fetchWeather(
   lat: number,
   lon: number,
@@ -183,6 +198,30 @@ export async function fetchWeather(
   const res = await fetch(url)
   if (!res.ok) throw new Error('Weather request failed')
   return res.json()
+}
+
+export async function fetchAirQuality(lat: number, lon: number) {
+  try {
+    const res = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi`)
+    if (!res.ok) return null
+    const data = await res.json()
+    return data
+  } catch {
+    return null
+  }
+}
+
+
+
+export async function fetchActiveStorms() {
+  try {
+    const res = await fetch('https://www.nhc.noaa.gov/CurrentStorms.json', { next: { revalidate: 300 } })
+    if (!res.ok) return []
+    const data = (await res.json()) as NHCResponse
+    return data.activeStorms || []
+  } catch {
+    return []
+  }
 }
 
 export async function searchGeo(query: string, count = 5): Promise<GeoResult[]> {

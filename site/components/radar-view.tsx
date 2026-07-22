@@ -116,15 +116,15 @@ export function RadarView({ coords }: { coords: Coords }) {
   }
 
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-      <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+    <section className="border-b border-border py-6">
+      <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
         <Radio className="size-4" />
-        <h2>Live Radar</h2>
+        <h2 className="font-semibold">Live Radar</h2>
       </div>
 
       <div
         ref={containerRef}
-        className="h-[420px] w-full overflow-hidden rounded-2xl border border-border sm:h-[500px]"
+        className="h-[420px] w-full overflow-hidden border border-border/50 sm:h-[500px]"
       />
 
       <div className="mt-4 flex items-center justify-center gap-3">

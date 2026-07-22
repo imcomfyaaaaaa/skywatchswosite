@@ -1,10 +1,11 @@
 'use client'
 
-import { Wind, Droplets, Sun, Thermometer, Clock, CalendarDays, MoonStar, Droplet } from 'lucide-react'
+import { Wind, Droplets, Sun, Thermometer, Clock, CalendarDays, MoonStar, Droplet, Activity } from 'lucide-react'
 import { WeatherIcon } from '@/components/weather-icon'
 import {
   getWeatherInfo,
   getSkyClass,
+  getAqiLabel,
   tempSymbol,
   windLabel,
   formatHour,
@@ -23,10 +24,10 @@ function SectionCard({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-      <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+    <section className="border-b border-border py-6">
+      <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
         {icon}
-        <h2>{title}</h2>
+        <h2 className="font-semibold">{title}</h2>
       </div>
       {children}
     </section>
@@ -76,9 +77,11 @@ function computeTonight(data: WeatherResponse) {
 export function CurrentView({
   data,
   settings,
+  aqi,
 }: {
   data: WeatherResponse
   settings: Settings
+  aqi: number | null
 }) {
   const { current, hourly, daily } = data
   const info = getWeatherInfo(current.weather_code)
@@ -115,44 +118,40 @@ export function CurrentView({
     { icon: Sun, label: 'UV Index', value: daily.uv_index_max?.[0]?.toFixed(1) ?? '--' },
     { icon: Thermometer, label: 'Feels Like', value: `${Math.round(current.apparent_temperature)}${ts}` },
   ]
+  if (aqi !== null) {
+    stats.splice(2, 0, { icon: Activity, label: 'Air Quality', value: `${aqi} ${getAqiLabel(aqi)}` })
+  }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {/* Hero */}
-      <section
-        className={`relative overflow-hidden rounded-3xl p-6 text-white shadow-lg sm:p-8 ${getSkyClass(
-          current.weather_code,
-        )}`}
-      >
-        <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <section className="py-8 text-foreground border-b border-border">
+        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="flex items-start gap-1">
-              <span className="font-display text-7xl font-bold leading-none tabular-nums tracking-tight sm:text-8xl">
+            <div className="flex items-start">
+              <span className="font-display text-8xl font-extralight leading-[0.8] tracking-tighter sm:text-[9rem]">
                 {Math.round(current.temperature_2m)}
               </span>
-              <span className="mt-2 text-2xl font-semibold opacity-80">{ts}</span>
+              <span className="text-3xl font-light opacity-50">{ts}</span>
             </div>
-            <div className="mt-3 flex items-center gap-2">
-              <WeatherIcon icon={info.icon} className="size-6" />
-              <span className="text-lg font-medium">{info.text}</span>
+            <div className="mt-6 flex items-center gap-3">
+              <WeatherIcon icon={info.icon} className="size-8 text-primary" />
+              <span className="text-xl font-light tracking-wide">{info.text}</span>
             </div>
-            <p className="mt-1 text-sm font-medium opacity-80">
+            <p className="mt-2 text-sm font-medium opacity-60 uppercase tracking-widest">
               High {maxes[0]}° &middot; Low {mins[0]}°
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="flex flex-wrap gap-x-8 gap-y-4 lg:max-w-[500px]">
             {stats.map((s) => {
               const Icon = s.icon
               return (
-                <div
-                  key={s.label}
-                  className="flex items-center gap-3 rounded-2xl bg-white/15 px-4 py-3 backdrop-blur-sm"
-                >
-                  <Icon className="size-5 opacity-90" />
+                <div key={s.label} className="flex min-w-[120px] items-center gap-3 py-2 border-b border-border/50">
+                  <Icon className="size-5 opacity-40" />
                   <div className="flex flex-col leading-tight">
-                    <span className="text-xs font-medium opacity-75">{s.label}</span>
-                    <span className="text-sm font-semibold tabular-nums">{s.value}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-widest opacity-50">{s.label}</span>
+                    <span className="text-lg font-light tabular-nums tracking-tight">{s.value}</span>
                   </div>
                 </div>
               )

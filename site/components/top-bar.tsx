@@ -16,15 +16,13 @@ export function TopBar({
   onToggleTheme: () => void
 }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-border bg-background">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-6">
         <a href="/" className="flex shrink-0 items-center gap-2.5">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
-            <CloudSun className="size-5" />
-          </span>
+          <CloudSun className="size-6" />
           <span className="hidden flex-col leading-none sm:flex">
-            <span className="font-display text-lg font-bold tracking-tight">SkyWatch</span>
-            <span className="text-[11px] font-medium text-muted-foreground">Live Weather</span>
+            <span className="font-display text-xl font-light tracking-tight uppercase">SkyWatch</span>
+            <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Global Data</span>
           </span>
         </a>
 

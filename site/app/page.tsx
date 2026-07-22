@@ -3,19 +3,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MapPin, Star, RefreshCw, Loader2, CloudSun } from 'lucide-react'
 import { TopBar } from '@/components/top-bar'
-import { TabStrip, type ViewName } from '@/components/tab-strip'
 import { AlertsBar } from '@/components/alerts'
 import { CurrentView } from '@/components/current-view'
 import { HourlyView } from '@/components/hourly-view'
 import { ForecastView } from '@/components/forecast-view'
 import { RadarView } from '@/components/radar-view'
-import { Sidebar } from '@/components/sidebar'
+import { SunMoonWidget } from '@/components/sun-moon-widget'
+import { SavedLocationsWidget } from '@/components/saved-locations-widget'
+import { HurricaneWidget } from '@/components/hurricane-widget'
 import { SettingsDialog } from '@/components/settings-dialog'
 import {
   fetchWeather,
+  fetchAirQuality,
   fetchAlerts,
+  fetchActiveStorms,
   reverseGeocode,
   getWeatherInfo,
+  getSkyClass,
   geoLabel,
   type Settings,
   type Coords,
@@ -23,6 +27,7 @@ import {
   type WeatherAlert,
   type Favorite,
   type GeoResult,
+  type NHCStorm,
 } from '@/lib/weather'
 
 const DEFAULT_SETTINGS: Settings = { tempUnit: 'celsius', windUnit: 'kmh', theme: 'dark' }
@@ -34,9 +39,11 @@ export default function Page() {
   const [coords, setCoords] = useState<Coords>(DEFAULT_COORDS)
   const [locationName, setLocationName] = useState('Locating…')
   const [data, setData] = useState<WeatherResponse | null>(null)
+  const [aqi, setAqi] = useState<number | null>(null)
   const [alerts, setAlerts] = useState<WeatherAlert[]>([])
+  const [activeStorms, setActiveStorms] = useState<NHCStorm[]>([])
   const [favorites, setFavorites] = useState<Favorite[]>([])
-  const [view, setView] = useState<ViewName>('current')
+  const [forecastTab, setForecastTab] = useState<'hourly' | 'daily'>('hourly')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -70,8 +77,14 @@ export default function Page() {
     if (name) setLocationName(name)
     else if (reverse) setLocationName('Locating…')
     try {
-      const [weather] = await Promise.all([fetchWeather(c.lat, c.lon, settingsRef.current)])
+      const [weather, aqiRes, storms] = await Promise.all([
+        fetchWeather(c.lat, c.lon, settingsRef.current),
+        fetchAirQuality(c.lat, c.lon),
+        fetchActiveStorms(),
+      ])
       setData(weather)
+      setAqi(aqiRes?.current?.us_aqi ?? null)
+      setActiveStorms(storms)
       if (reverse && !name) {
         const resolved = await reverseGeocode(c.lat, c.lon)
         setLocationName(resolved)
@@ -206,7 +219,7 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-dvh bg-background">
       <TopBar
         onSelect={selectGeo}
         onOpenSettings={() => setSettingsOpen(true)}
@@ -214,14 +227,9 @@ export default function Page() {
         onToggleTheme={() => updateSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}
       />
 
-      <div className="py-4">
-        <TabStrip active={view} onChange={setView} />
-      </div>
-
-      <main className="mx-auto max-w-6xl px-4 pb-16">
-        {/* Location row */}
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2">
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
             <MapPin className="size-5 shrink-0 text-primary" />
             <h1 className="truncate font-display text-xl font-bold tracking-tight sm:text-2xl">
               {locationName}
@@ -255,40 +263,74 @@ export default function Page() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-          <div className="min-w-0">
-            {error ? (
-              <div className="flex flex-col items-center gap-3 rounded-3xl border border-border bg-card p-12 text-center">
-                <CloudSun className="size-10 text-muted-foreground" />
-                <p className="font-semibold">Couldn&apos;t load weather data</p>
-                <button
-                  onClick={refresh}
-                  className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-                >
-                  Try again
-                </button>
-              </div>
-            ) : loading || !data ? (
-              <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-3xl border border-border bg-card text-muted-foreground">
-                <Loader2 className="size-8 animate-spin text-primary" />
-                <span className="text-sm">Loading forecast…</span>
-              </div>
-            ) : (
-              <>
-                {view === 'current' && <CurrentView data={data} settings={settings} />}
-                {view === 'hourly' && <HourlyView data={data} settings={settings} />}
-                {view === 'forecast' && <ForecastView data={data} />}
-                {view === 'radar' && <RadarView coords={coords} />}
-              </>
-            )}
-          </div>
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_320px]">
+          {error ? (
+            <div className="col-span-full flex flex-col items-center gap-3 rounded-3xl border border-border bg-card p-12 text-center shadow-sm">
+              <CloudSun className="size-10 text-muted-foreground" />
+              <p className="font-semibold">Couldn&apos;t load weather data</p>
+              <button
+                onClick={refresh}
+                className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105 active:scale-95"
+              >
+                Try again
+              </button>
+            </div>
+          ) : loading || !data ? (
+            <div className="col-span-full flex h-64 flex-col items-center justify-center gap-3 rounded-3xl border border-border bg-card shadow-sm text-muted-foreground">
+              <Loader2 className="size-8 animate-spin text-primary" />
+              <span className="text-sm">Loading forecast…</span>
+            </div>
+          ) : (
+            <>
+              {/* Main Column */}
+              <div className="flex flex-col gap-6 min-w-0">
+                <CurrentView data={data} settings={settings} aqi={aqi} />
 
-          <Sidebar
-            favorites={favorites}
-            onSelectFavorite={selectFavorite}
-            onRemoveFavorite={removeFavorite}
-            data={data}
-          />
+                <section className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2 border-b border-border">
+                    <button
+                      onClick={() => setForecastTab('hourly')}
+                      className={`pb-2 px-1 text-sm font-semibold transition-colors ${
+                        forecastTab === 'hourly'
+                          ? 'border-b-2 border-primary text-primary'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Short Term (Hourly)
+                    </button>
+                    <button
+                      onClick={() => setForecastTab('daily')}
+                      className={`pb-2 px-1 text-sm font-semibold transition-colors ${
+                        forecastTab === 'daily'
+                          ? 'border-b-2 border-primary text-primary'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Long Term (7-Day)
+                    </button>
+                  </div>
+                  {forecastTab === 'hourly' ? (
+                    <HourlyView data={data} settings={settings} />
+                  ) : (
+                    <ForecastView data={data} />
+                  )}
+                </section>
+
+                <RadarView coords={coords} />
+              </div>
+
+              {/* Right Rail */}
+              <aside className="flex flex-col gap-6">
+                {activeStorms.length > 0 && <HurricaneWidget storms={activeStorms} settings={settings} />}
+                <SavedLocationsWidget
+                  favorites={favorites}
+                  onSelectFavorite={selectFavorite}
+                  onRemoveFavorite={removeFavorite}
+                />
+                <SunMoonWidget data={data} />
+              </aside>
+            </>
+          )}
         </div>
       </main>
 

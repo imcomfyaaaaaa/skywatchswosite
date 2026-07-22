@@ -135,24 +135,35 @@
   }
 }
 
+@keyframes bg-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 /* Weather-aware hero gradients */
+.sky-clear, .sky-cloudy, .sky-rain, .sky-snow, .sky-fog, .sky-storm {
+  background-size: 200% 200%;
+  animation: bg-shift 20s ease infinite;
+}
+
 .sky-clear {
-  background-image: linear-gradient(150deg, oklch(0.62 0.15 245), oklch(0.72 0.12 220));
+  background-image: linear-gradient(150deg, oklch(0.62 0.15 245), oklch(0.72 0.12 220), oklch(0.62 0.15 245));
 }
 .sky-cloudy {
-  background-image: linear-gradient(150deg, oklch(0.5 0.04 250), oklch(0.6 0.05 235));
+  background-image: linear-gradient(150deg, oklch(0.5 0.04 250), oklch(0.6 0.05 235), oklch(0.5 0.04 250));
 }
 .sky-rain {
-  background-image: linear-gradient(150deg, oklch(0.42 0.07 250), oklch(0.52 0.08 235));
+  background-image: linear-gradient(150deg, oklch(0.42 0.07 250), oklch(0.52 0.08 235), oklch(0.42 0.07 250));
 }
 .sky-snow {
-  background-image: linear-gradient(150deg, oklch(0.6 0.04 240), oklch(0.72 0.03 225));
+  background-image: linear-gradient(150deg, oklch(0.6 0.04 240), oklch(0.72 0.03 225), oklch(0.6 0.04 240));
 }
 .sky-fog {
-  background-image: linear-gradient(150deg, oklch(0.55 0.02 250), oklch(0.64 0.02 240));
+  background-image: linear-gradient(150deg, oklch(0.55 0.02 250), oklch(0.64 0.02 240), oklch(0.55 0.02 250));
 }
 .sky-storm {
-  background-image: linear-gradient(150deg, oklch(0.35 0.05 275), oklch(0.45 0.06 255));
+  background-image: linear-gradient(150deg, oklch(0.35 0.05 275), oklch(0.45 0.06 255), oklch(0.35 0.05 275));
 }
 
 /* Leaflet dark tweaks */

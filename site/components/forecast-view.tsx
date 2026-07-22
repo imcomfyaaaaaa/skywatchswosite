@@ -12,10 +12,10 @@ export function ForecastView({ data }: { data: WeatherResponse }) {
   const { daily } = data
 
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-      <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+    <section className="border-b border-border py-6">
+      <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
         <CalendarDays className="size-4" />
-        <h2>Detailed 7-Day Forecast</h2>
+        <h2 className="font-semibold">Detailed 7-Day Forecast</h2>
       </div>
 
       <div className="grid grid-cols-[1fr_84px_56px_48px] gap-2 border-b border-border pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:grid-cols-[1.4fr_1fr_96px_72px_56px]">
@@ -41,9 +41,9 @@ export function ForecastView({ data }: { data: WeatherResponse }) {
                 {i === 0 ? 'Today' : formatDay(day)}
               </span>
               <span className="hidden truncate text-muted-foreground sm:block">{info.text}</span>
-              <span className="text-right tabular-nums sm:text-left">
-                <strong>{max}°</strong>{' '}
-                <span className="text-muted-foreground">{min}°</span>
+              <span className="text-right tabular-nums tracking-tight sm:text-left">
+                <span className="text-lg font-light">{max}°</span>{' '}
+                <span className="text-sm font-light text-muted-foreground">{min}°</span>
               </span>
               <span className="flex items-center justify-end gap-1 text-accent tabular-nums">
                 <Droplet className="size-3.5" />
